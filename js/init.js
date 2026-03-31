@@ -59,7 +59,7 @@ function selectSkin(skin) {
     const uiElements = [
         'score', 'instructions', 'crosshair', 'coinsDisplay',
         'openShopBtn', 'openItemsShopBtn', 'openWeaponsShopBtn',
-        'woodDisplay', 'hungerDisplay', 'thirstDisplay',
+        'woodDisplay', 'hungerDisplay', 'thirstDisplay', 'fatigueDisplay',
         'buildHouseBtn', 'buildBedBtn', 'buildSecondFloorBtn',
         'teleportToTrainingBtn'
     ];
@@ -81,6 +81,7 @@ function selectSkin(skin) {
     if (typeof updateWoodDisplay === 'function') updateWoodDisplay();
     if (typeof updateHungerDisplay === 'function') updateHungerDisplay();
     if (typeof updateThirstDisplay === 'function') updateThirstDisplay();
+    if (typeof updateFatigueDisplay === 'function') updateFatigueDisplay();
 
     // Индикатор поглаживания показывается автоматически когда игрок подходит к собаке
 }

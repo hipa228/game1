@@ -30,6 +30,17 @@ var thirst = 100; // Жажда (0-100)
 var maxThirst = 100;
 var foodItem = null; // Объект еды в доме
 var sodaItem = null; // Объект газировки в доме
+
+// Система усталости и сна
+var fatigue = 100; // Усталость (0-100)
+var maxFatigue = 100;
+var fatigueRate = 1; // Скорость увеличения усталости
+
+// Ресурсы для крафта
+var cloth = 0;     // Ткань (можно собирать с зомби или находить)
+var herbs = 0;     // Травы (можно собирать в мире)
+var nails = 0;     // Гвозди (можно найти в зданиях)
+var string = 0;    // Веревка (можно создать из ткани)
 var playerHouse = null; // Построенный дом игрока
 var playerBed = null; // Кровать в доме
 var hasBed = false; // Есть ли кровать
@@ -489,6 +500,23 @@ function updateThirstDisplay() {
             thirstEl.style.background = 'linear-gradient(135deg, rgba(30, 144, 255, 0.85), rgba(65, 105, 225, 0.75))';
         } else {
             thirstEl.style.background = 'linear-gradient(135deg, rgba(135, 206, 250, 0.85), rgba(100, 149, 237, 0.75))';
+        }
+    }
+}
+
+function updateFatigueDisplay() {
+    const fatiguePercent = Math.floor((fatigue / maxFatigue) * 100);
+    const fatigueEl = document.getElementById('fatigueDisplay');
+    if (fatigueEl) {
+        fatigueEl.textContent = '😴 Усталость: ' + fatiguePercent + '%';
+
+        // Меняем цвет в зависимости от уровня усталости
+        if (fatiguePercent < 20) {
+            fatigueEl.style.background = 'linear-gradient(135deg, rgba(75, 0, 130, 0.95), rgba(75, 0, 130, 0.85))';
+        } else if (fatiguePercent < 50) {
+            fatigueEl.style.background = 'linear-gradient(135deg, rgba(128, 0, 128, 0.85), rgba(75, 0, 130, 0.75))';
+        } else {
+            fatigueEl.style.background = 'linear-gradient(135deg, rgba(147, 112, 219, 0.85), rgba(138, 43, 226, 0.75))';
         }
     }
 }

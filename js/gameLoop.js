@@ -166,8 +166,9 @@ function updatePlayer() {
         return; // Выходим, не обрабатываем движение
     }
 
-    // Эффективная скорость (замедляется при прицеливании)
-    const effectiveSpeed = isAiming ? playerSpeed * 0.5 : playerSpeed;
+    // Эффективная скорость (замедляется при прицеливании и усталости)
+    const fatigueMultiplier = fatigue > 80 ? 0.7 : (fatigue > 60 ? 0.85 : 1.0);
+    const effectiveSpeed = (isAiming ? playerSpeed * 0.5 : playerSpeed) * fatigueMultiplier;
 
     // Движение влево-вправо
     if (keys['ArrowLeft']) {
@@ -556,32 +557,35 @@ function shoot() {
     let spreadX = 0;
     let spreadY = 0;
 
+    // Множитель разброса от усталости
+    const fatigueSpreadMultiplier = fatigue > 80 ? 1.5 : (fatigue > 60 ? 1.2 : 1.0);
+
     if (selectedWeapon === 'pistol') {
         // Пистолет - минимальный разброс
-        spreadX = (Math.random() - 0.5) * 0.01;
-        spreadY = (Math.random() - 0.5) * 0.01;
+        spreadX = (Math.random() - 0.5) * 0.01 * fatigueSpreadMultiplier;
+        spreadY = (Math.random() - 0.5) * 0.01 * fatigueSpreadMultiplier;
     } else if (selectedWeapon === 'rifle') {
         // Винтовка - средний разброс
-        spreadX = (Math.random() - 0.5) * 0.02;
-        spreadY = (Math.random() - 0.5) * 0.02;
+        spreadX = (Math.random() - 0.5) * 0.02 * fatigueSpreadMultiplier;
+        spreadY = (Math.random() - 0.5) * 0.02 * fatigueSpreadMultiplier;
     } else if (selectedWeapon === 'ak47') {
         // AK-47 - большой разброс как в CS:GO
-        spreadX = (Math.random() - 0.5) * 0.04;
-        spreadY = (Math.random() - 0.5) * 0.03 + 0.015; // Уходит вверх
+        spreadX = (Math.random() - 0.5) * 0.04 * fatigueSpreadMultiplier;
+        spreadY = ((Math.random() - 0.5) * 0.03 + 0.015) * fatigueSpreadMultiplier; // Уходит вверх
     } else if (selectedWeapon === 'shotgun') {
         // Дробовик - огромный разброс
-        spreadX = (Math.random() - 0.5) * 0.08;
-        spreadY = (Math.random() - 0.5) * 0.08;
+        spreadX = (Math.random() - 0.5) * 0.08 * fatigueSpreadMultiplier;
+        spreadY = (Math.random() - 0.5) * 0.08 * fatigueSpreadMultiplier;
     } else if (selectedWeapon === 'sniper' || selectedWeapon === 'awp') {
         // Снайперка/AWP - нет разброса при прицеливании
         if (!isAiming) {
-            spreadX = (Math.random() - 0.5) * 0.05;
-            spreadY = (Math.random() - 0.5) * 0.05;
+            spreadX = (Math.random() - 0.5) * 0.05 * fatigueSpreadMultiplier;
+            spreadY = (Math.random() - 0.5) * 0.05 * fatigueSpreadMultiplier;
         }
     } else if (selectedWeapon === 'machinegun') {
         // Пулемёт - большой разброс при длительной стрельбе
-        spreadX = (Math.random() - 0.5) * 0.05;
-        spreadY = (Math.random() - 0.5) * 0.04 + 0.02;
+        spreadX = (Math.random() - 0.5) * 0.05 * fatigueSpreadMultiplier;
+        spreadY = ((Math.random() - 0.5) * 0.04 + 0.02) * fatigueSpreadMultiplier;
     }
 
     // Применяем разброс к направлению
@@ -2122,6 +2126,29 @@ function animate() {
             thirst = Math.max(0, thirst - 1);
             updateHungerDisplay();
             updateThirstDisplay();
+
+            // Обновление усталости (каждые 2.5 секунды - 150 кадров)
+            if (!window.fatigueFrame) window.fatigueFrame = 0;
+            window.fatigueFrame++;
+            if (window.fatigueFrame >= 150) {
+                window.fatigueFrame = 0;
+
+                // Увеличиваем усталость в зависимости от активности
+                if (keys[87] || keys[65] || keys[68]) { // Если игрок двигается (W, A, D)
+                    fatigue = Math.min(fatigue + 2, maxFatigue); // +2 усталости при движении
+                } else if (isAiming) { // Если прицеливается
+                    fatigue = Math.min(fatigue + 1, maxFatigue); // +1 усталости при прицеливании
+                } else { // Базовое увеличение
+                    fatigue = Math.min(fatigue + 1, maxFatigue); // +1 усталости пассивно
+                }
+
+                // Восстановление при отдыхе (рядом с кроватью в доме)
+                if (isInsideHouse && hasBed && checkBedProximity()) {
+                    fatigue = Math.max(fatigue - 5, 0); // -5 усталости при отдыхе
+                }
+
+                updateFatigueDisplay();
+            }
 
             // Если голод или жажда слишком низкие, отнимаем жизнь
             if (hunger <= 0 || thirst <= 0) {
